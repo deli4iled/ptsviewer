@@ -372,11 +372,10 @@ void drawScene() {
 
 //	glColor4f(1.0, 1.0, 1.0, 1.0);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
+  
 	glEnableClientState( GL_VERTEX_ARRAY );
 	/* Set point size */
 	glPointSize( g_pointsize );
-
 	int i;
 	for ( i = 0; i < g_cloudcount; i++ ) {
 		if ( g_clouds[i].enabled ) {
@@ -738,7 +737,7 @@ void keyPressed( unsigned char key, int x, int y ) {
 		case '/': g_movespeed  /= 10;  break;
 		case 'x': g_invertrotx *= -1;  break;
 		case 'y': g_invertroty *= -1;  break;
-		case 'f': g_rot.y      += 180; break;
+		case 'f': g_rot.x      -= 180; g_rot.y      -= 180;  break;
 		case 'C': g_showcoord = !g_showcoord; break;
 		case 'c': glGetFloatv( GL_COLOR_CLEAR_VALUE, rgb );
 					/* Invert background color */
@@ -757,6 +756,38 @@ void keyPressed( unsigned char key, int x, int y ) {
 					 for ( i = 0; i < g_cloudcount; i++ ) {
 						 g_clouds[i].enabled = !g_clouds[i].enabled;
 					 }
+           break;
+	case 'T':
+          {
+            int index = -1;
+           for ( i = 0; i < g_cloudcount; i++ ) {
+              if(g_clouds[i].enabled && index==-1){
+                index = i;
+             }
+             g_clouds[i].enabled = 0;
+           }
+           if(index!=g_cloudcount-1)
+            g_clouds[index+1].enabled = 1;
+           else
+            g_clouds[0].enabled = 1;
+           }  
+           break;
+	case 'R':
+          {
+            int index = -1;
+           for ( i = 0; i < g_cloudcount; i++ ) {
+              if(g_clouds[i].enabled && index==-1){
+                index = i;
+             }
+             g_clouds[i].enabled = 0;
+           }
+           if (index ==-1)
+            index = 1;
+           if(index!=0)
+            g_clouds[index-1].enabled = 1;
+           else
+            g_clouds[g_cloudcount-1].enabled = 1;
+           }   
 	}
 	/* Control point clouds */
 	if ( key >= '0' && key <= '9' ) {
@@ -814,7 +845,7 @@ void init() {
 	glutKeyboardFunc( &keyPressed );
 	glutMotionFunc(   &mouseMoved );
 	glutMouseFunc(    &mousePress );
-
+  g_rot.x      -= 180; g_rot.y      -= 180; 
 	/* Set black as background color */
 	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 
