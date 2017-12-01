@@ -397,7 +397,7 @@ void drawScene() {
 
 			/* Apply scale, rotation and translation. */
 			/* Global (all points) */
-			glScalef( g_zoom, g_zoom, 1 );
+			glScalef( -g_zoom, g_zoom, 1 );
 			glTranslatef( g_translate.x, g_translate.y, g_translate.z );
 
 			glRotatef( (int) g_rot.x, 1, 0, 0 );
