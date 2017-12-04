@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 
 #include <GL/glut.h>
 #include <GL/gl.h>
@@ -25,6 +26,10 @@
 #include <math.h>
 #include "rply/rply.h"
 #include <float.h>
+
+#include <opencv2/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 
 #define FILE_FORMAT_NONE 0
 #define FILE_FORMAT_UOS  1
@@ -40,6 +45,7 @@ void resizeScene( int w, int h );
 void init();
 int  main( int argc, char ** argv );
 void printHelp();
+void saveImgs();
 uint8_t determineFileFormat( char * filename );
 
 /* Type definitions */

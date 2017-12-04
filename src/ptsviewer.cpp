@@ -17,6 +17,7 @@
 
 #define min(A,B) ((A)<(B) ? (A) : (B)) 
 #define max(A,B) ((A)>(B) ? (A) : (B)) 
+int firstTime = 0;
 
 
 /*******************************************************************************
@@ -369,7 +370,10 @@ void mousePress( int button, int state, int x, int y ) {
  *  Description:  Display point cloud.
  ******************************************************************************/
 void drawScene() {
-
+  if(firstTime==0){
+saveImgs();
+firstTime = 1;
+}
 //	glColor4f(1.0, 1.0, 1.0, 1.0);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   
@@ -422,12 +426,41 @@ void drawScene() {
 		
 			/* Draw point cloud */
 			glDrawArrays( GL_POINTS, 0, g_clouds[i].pointcount );
+      
+      /**********/
+ /*unsigned char* imageData = (unsigned char *)malloc((int)(640*480*(3)));
+	
+	//write 
+  
+  
+  cv::Mat flipped;
+  cv::Mat img(640,480, CV_8UC3);
+  //glPixelStorei(GL_PACK_ALIGNMENT, (img.step & 3) ? 1 : 4);
 
+  //set length of one complete row in destination data (doesn't need to equal img.cols)
+  glPixelStorei(GL_PACK_ROW_LENGTH, img.step/img.elemSize());
+  glReadBuffer(GL_BACK);
+  glReadPixels(0, 0, 640, 480, GL_BGR, GL_UNSIGNED_BYTE, imageData);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  glGetError();
+  
+  cv::Mat img2(640,480, CV_8UC3,imageData);
+  cv::flip(img2, flipped, 0);
+  //img.data=imageData;
+  
+  cv::imshow(g_clouds[i].name,flipped);
+  cv::waitKey(0);
+  cv::imwrite(strncat(g_clouds[i].name,".jpg",4),flipped);
+  std::cout<<"I "<<i<<std::endl;
+
+*/
+/*****************/
+      
 			/* Disable colorArray. */
 			if ( g_clouds[i].colors ) {
 				glDisableClientState( GL_COLOR_ARRAY );
 			}
-		}
+		}    
 	}
 
 	/* Reset ClientState */
@@ -787,7 +820,11 @@ void keyPressed( unsigned char key, int x, int y ) {
             g_clouds[index-1].enabled = 1;
            else
             g_clouds[g_cloudcount-1].enabled = 1;
-           }   
+            
+          
+         
+           } 
+           break;  
 	}
 	/* Control point clouds */
 	if ( key >= '0' && key <= '9' ) {
@@ -826,7 +863,7 @@ void resizeScene( int w, int h ) {
  *  Description:  Do some initialization.
  ******************************************************************************/
 void init() {
-
+  std::cout<<"\n\n\n\n\n\+++++++++++++++++++++++++++++++++++INIT+++++++++++++++++++++++++++\n\n\n\n\n"<<std::endl;
 	/**
 	 * Set mode for GLUT windows:
 	 * GLUT_RGBA       Red, green, blue, alpha framebuffer.
@@ -848,7 +885,9 @@ void init() {
   g_rot.x      -= 180; g_rot.y      -= 180; 
 	/* Set black as background color */
 	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
-
+  
+  
+  
 }
 
 
@@ -910,7 +949,8 @@ int main( int argc, char ** argv ) {
 
 	/* Initialize GLUT */
 	glutInit( &argc, argv );
-	init();
+  init();
+
 
 	/* Check if we have enough parameters */
 	if ( argc < 2 ) {
@@ -925,7 +965,6 @@ int main( int argc, char ** argv ) {
 		exit( EXIT_FAILURE );
 	}
 	g_cloudcount = argc - 1;
-
 	/* Load pts file */
 	int i;
 	for ( i = 0; i < g_cloudcount; i++ ) {
@@ -948,9 +987,10 @@ int main( int argc, char ** argv ) {
 	g_trans_center.z = ( g_bb.max.z + g_bb.min.z ) / 2;
 	g_translate.z = -fabs( g_bb.max.z - g_bb.min.z );
 
+  //saveImgs();
+
 	/* Print usage information to stdout. */
 	printHelp();
-
 	/* Run program */
 	glutMainLoop();
 
@@ -959,7 +999,108 @@ int main( int argc, char ** argv ) {
 
 }
 
+void saveImgs(){
+  	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  
+	glEnableClientState( GL_VERTEX_ARRAY );
+	/* Set point size */
+	glPointSize( g_pointsize );
+	int i;
+  std::cout<<"g_cloudcount "<<g_cloudcount<<std::endl;
+  std::cout<<"start cycle"<<std::endl;
 
+	for ( i = 0; i < g_cloudcount; i++ ) {
+		
+			glLoadIdentity();
+  std::cout<<"inside cycle"<<std::endl;
+
+			/* Enable colorArray. */
+			if ( g_clouds[i].colors ) {
+				glEnableClientState( GL_COLOR_ARRAY );
+			} else {
+				/* Set cloudcolor to opposite of background color. */
+				float rgb[3];
+				glGetFloatv( GL_COLOR_CLEAR_VALUE, rgb );
+				if ( *rgb < 0.5 ) {
+					glColor3f( 1.0f, 1.0f, 1.0f );
+				} else {
+					glColor3f( 0.0f, 0.0f, 0.0f );
+				}
+			}
+
+			/* Apply scale, rotation and translation. */
+			/* Global (all points) */
+			glScalef( -g_zoom, g_zoom, 1 );
+			glTranslatef( g_translate.x, g_translate.y, g_translate.z );
+
+			glRotatef( (int) g_rot.x, 1, 0, 0 );
+			glRotatef( (int) g_rot.y, 0, 1, 0 );
+			glRotatef( (int) g_rot.z, 0, 0, 1 );
+
+			glTranslatef( -g_trans_center.x, -g_trans_center.y, -g_trans_center.z );
+
+			/* local (this cloud only) */
+			glTranslatef( g_clouds[i].trans.x, g_clouds[i].trans.y,
+					g_clouds[i].trans.z );
+
+			glRotatef( (int) g_clouds[i].rot.x, 1, 0, 0 );
+			glRotatef( (int) g_clouds[i].rot.y, 0, 1, 0 );
+			glRotatef( (int) g_clouds[i].rot.z, 0, 0, 1 );
+
+			/* Set vertex and color pointer. */
+			glVertexPointer( 3, GL_FLOAT, 0, g_clouds[i].vertices );
+			if ( g_clouds[i].colors ) {
+				glColorPointer(  3, GL_UNSIGNED_BYTE, 0, g_clouds[i].colors );
+			}
+		
+			/* Draw point cloud */
+			glDrawArrays( GL_POINTS, 0, g_clouds[i].pointcount );
+      
+      /**********/
+ unsigned char* imageData = (unsigned char *)malloc((int)(640*480*(3)));
+	
+	//write 
+  
+  
+  cv::Mat flipped;
+  cv::Mat img(640,480, CV_8UC3);
+  //glPixelStorei(GL_PACK_ALIGNMENT, (img.step & 3) ? 1 : 4);
+
+  //set length of one complete row in destination data (doesn't need to equal img.cols)
+  glPixelStorei(GL_PACK_ROW_LENGTH, img.step/img.elemSize());
+  glReadBuffer(GL_BACK);
+  glReadPixels(0, 0, 640, 480, GL_BGR, GL_UNSIGNED_BYTE, imageData);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  glGetError();
+  
+  cv::Mat img2(640,480, CV_8UC3,imageData);
+  cv::flip(img2, flipped, 0);
+  //img.data=imageData;
+  
+  //cv::imshow(g_clouds[i].name,flipped);
+  //cv::waitKey(0);
+  std::string plyName = g_clouds[i].name;
+  std::size_t pos = plyName.find("ply");      
+  std::string jpgName = plyName.replace (pos,3,"jpg");
+  std::cout<<"I "<<i<<" "<<jpgName<<std::endl;
+  cv::imwrite(jpgName,flipped);
+
+  //std::cout<<"I "<<strncat(g_clouds[i].name,".jpg",4)<<std::endl;
+
+
+/*****************/
+      
+			/* Disable colorArray. */
+			if ( g_clouds[i].colors ) {
+				glDisableClientState( GL_COLOR_ARRAY );
+			}
+		
+	}
+  
+  std::cout<<"end cycle"<<std::endl;
+
+  
+}
 /*******************************************************************************
  *         Name:  printHelp
  *  Description:  Prints control information.
