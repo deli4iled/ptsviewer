@@ -29,6 +29,7 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 
 #define FILE_FORMAT_NONE 0

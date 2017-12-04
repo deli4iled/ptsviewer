@@ -1063,17 +1063,17 @@ void saveImgs(){
   
   
   cv::Mat flipped;
-  cv::Mat img(640,480, CV_8UC3);
+  cv::Mat img(480,640, CV_8UC3);
   //glPixelStorei(GL_PACK_ALIGNMENT, (img.step & 3) ? 1 : 4);
 
   //set length of one complete row in destination data (doesn't need to equal img.cols)
   glPixelStorei(GL_PACK_ROW_LENGTH, img.step/img.elemSize());
   glReadBuffer(GL_BACK);
-  glReadPixels(0, 0, 640, 480, GL_BGR, GL_UNSIGNED_BYTE, imageData);
+  glReadPixels(0, 0, 480, 640, GL_BGR, GL_UNSIGNED_BYTE, imageData);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glGetError();
   
-  cv::Mat img2(640,480, CV_8UC3,imageData);
+  cv::Mat img2(480,640, CV_8UC3,imageData);
   cv::flip(img2, flipped, 0);
   //img.data=imageData;
   
@@ -1082,8 +1082,28 @@ void saveImgs(){
   std::string plyName = g_clouds[i].name;
   std::size_t pos = plyName.find("ply");      
   std::string jpgName = plyName.replace (pos,3,"jpg");
+  std::string boxName = plyName.replace (pos,3,"png");
   std::cout<<"I "<<i<<" "<<jpgName<<std::endl;
-  cv::imwrite(jpgName,flipped);
+  std::cout<<"boxName "<<i<<" "<<boxName<<std::endl;
+  cv::Mat boxes = cv::imread(boxName);
+  cv::Rect roi(150,150,540,380);
+  cv::Mat boxes_rsz;
+  cv::resize(boxes,boxes_rsz,cv::Size(640,480));
+  //cv::imshow(jpgName,flipped);
+  //cv::imshow(boxName,boxes_rsz);
+  //cv::waitKey(0);
+
+ 
+  cv::Mat finalImg(480, 1280, CV_8UC3);
+  cv::Mat left(finalImg, cv::Rect(0, 0, 640, 480));
+  flipped.copyTo(left);
+  cv::Mat right(finalImg, cv::Rect(640, 0, 640, 480));
+  boxes_rsz.copyTo(right);
+  //cv::imshow("im3", finalImg);
+  //cv::waitKey(0);
+
+
+  cv::imwrite(jpgName,finalImg);
 
   //std::cout<<"I "<<strncat(g_clouds[i].name,".jpg",4)<<std::endl;
 
